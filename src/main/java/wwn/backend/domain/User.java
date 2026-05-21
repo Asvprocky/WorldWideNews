@@ -5,14 +5,15 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import wwn.backend.dto.request.UserRequestDTO;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
 @ToString (exclude = "password")
 @Table(name = "users")
 public class User {
@@ -47,4 +48,26 @@ public class User {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Builder
+    public User(
+            String email,
+            String password,
+            String nickname,
+            SocialProviderType socialProviderType,
+            UserRoleType role,
+            boolean isSocial
+    ){
+        this.email = email;
+        this.password = password;
+        this.nickname = nickname;
+        this.socialProviderType = socialProviderType;
+        this.role = role;
+        this.isSocial = isSocial;
+    }
+
+    public void updateUser(UserRequestDTO dto) {
+        this.email = dto.getEmail();
+        this.nickname = dto.getNickname();
+    }
 }
