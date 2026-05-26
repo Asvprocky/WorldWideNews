@@ -23,13 +23,17 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
-    // 자체 로그인 회원 가입 (존재 여부)
+    /**
+     * 로그인 유저 유효성 체크
+     */
     @Transactional(readOnly = true)
     public Boolean existEmail(UserRequestDTO dto) {
         return userRepository.existsByEmail(dto.getEmail());
     }
 
-    // 자체 로그인 회원 가입
+    /**
+     * 회원가입
+     */
     @Transactional
     public Long addUser(UserRequestDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
@@ -46,7 +50,9 @@ public class UserService implements UserDetailsService {
         return userRepository.save(userEntity).getId();
     }
 
-    // 자체 로그인
+    /**
+     * 자체로그인
+     */
     @Transactional
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -61,7 +67,9 @@ public class UserService implements UserDetailsService {
                 .build();
     }
 
-    // 자체 로그인 회원 정보 수정
+    /**
+     * 로그인 사용자 정보 수정
+     */
     @Transactional
     public Long updateUser(UserRequestDTO dto) throws AccessDeniedException {
         // 본인만 수정 가능
@@ -79,11 +87,16 @@ public class UserService implements UserDetailsService {
 
         return userRepository.save(userEntity).getId();
     }
-    // 자체/소셜 로그인 회원 탈퇴
+    /**
+     * 회원 탈퇴
+     */
 
-    // 소셜 로그인 (매 로그인시 : 신규 = 가입, 기존 = 업데이트)
+    /**
+     * 소셜 로그인
+     */
 
-    // 자체/소셜 유저 정보 조회
 
-
+    /**
+     * 로그인 정보 확인
+     */
 }
