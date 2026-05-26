@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,20 +19,20 @@ import wwn.backend.repository.UserRepository;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserService {
+public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
     // 자체 로그인 회원 가입 (존재 여부)
     @Transactional(readOnly = true)
-    public Boolean existEmail(UserRequestDTO dto){
+    public Boolean existEmail(UserRequestDTO dto) {
         return userRepository.existsByEmail(dto.getEmail());
     }
 
     // 자체 로그인 회원 가입
     @Transactional
-    public Long addUser(UserRequestDTO dto){
-        if(userRepository.existsByEmail(dto.getEmail())){
+    public Long addUser(UserRequestDTO dto) {
+        if (userRepository.existsByEmail(dto.getEmail())) {
             throw new IllegalArgumentException("이미 유저가 존재합니다.");
         }
         User userEntity = User.builder()
@@ -45,20 +47,32 @@ public class UserService {
     }
 
     // 자체 로그인
+    @Transactional
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User userEntity = userRepository.findByEmailAndIsSocial(email, false)
+                .orElseThrow(() -> new UsernameNotFoundException(email));
 
+        return org.springframework.security.core.userdetails.User //스프링 시큐리티 내부 User 객체 도메인 User 아님.
+                .builder()
+                .username(userEntity.getEmail())
+                .password(userEntity.getPassword())
+                .roles(userEntity.getUserRoleType().name())
+                .build();
+    }
 
     // 자체 로그인 회원 정보 수정
     @Transactional
     public Long updateUser(UserRequestDTO dto) throws AccessDeniedException {
         // 본인만 수정 가능
-        String sessionUserEmail= SecurityContextHolder.getContext().getAuthentication().getName();
-        if(sessionUserEmail.equals(dto.getEmail())){
+        String sessionUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (sessionUserEmail.equals(dto.getEmail())) {
             throw new AccessDeniedException("본인 계정만 수정 가능.");
         }
 
         //조회
         User userEntity = userRepository.findByEmailAndIsSocial(dto.getEmail(), false)
-                .orElseThrow(()-> new UsernameNotFoundException(dto.getEmail()));
+                .orElseThrow(() -> new UsernameNotFoundException(dto.getEmail()));
 
         //회원 정보 수정
         userEntity.updateUser(dto);

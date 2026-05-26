@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@ToString (exclude = "password")
+@ToString(exclude = "password")
 @Table(name = "users")
 public class User {
     @Id
@@ -24,21 +24,21 @@ public class User {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password" , nullable = false)
+    @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name ="nickname" , nullable = false)
+    @Column(name = "nickname", nullable = false)
     private String nickname;
 
     @Enumerated(EnumType.STRING)
-    @Column(name ="social_provider_type")
+    @Column(name = "social_provider_type")
     private SocialProviderType socialProviderType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name ="role")
-    private UserRoleType role;
+    @Column(name = "role")
+    private UserRoleType userRoleType;
 
-    @Column(name = "is_social" , nullable = false)
+    @Column(name = "is_social", nullable = false)
     private boolean isSocial;
 
     @CreatedDate
@@ -57,12 +57,12 @@ public class User {
             SocialProviderType socialProviderType,
             UserRoleType role,
             boolean isSocial
-    ){
+    ) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
         this.socialProviderType = socialProviderType;
-        this.role = role;
+        this.userRoleType = role;
         this.isSocial = isSocial;
     }
 
