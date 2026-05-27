@@ -1,5 +1,7 @@
 package wwn.backend.filter;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StreamUtils;
@@ -29,14 +32,15 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
     // 2. 이 필터는 반드시 [POST 방식]의 [/login] 주소로 들어오는 요청만 가로채겠다고 과녁을 설정함
     private static final RequestMatcher DEFAULT_ANT_PATH_REQUEST_MATCHER = PathPatternRequestMatcher.withDefaults()
             .matcher(HttpMethod.POST, "/login");
-
+    private final AuthenticationSuccessHandler authenticationSuccessHandler;
     // 3. 필터 내부에서 유동적으로 쓸 수 있게 변수(parameter)에 1번에서 만든 "email"과 "password" 문자열을 대입함
     private String emailParameter = SPRING_SECURITY_FORM_EMAIL_KEY;
     private String passwordParameter = SPRING_SECURITY_FORM_PASSWORD_KEY;
 
     // 4. 생성자: 부모 필터에게 "POST /login 요청을 가로채고, 검증은 이 매니저에게 시켜라" 하고 세팅을 완료함
-    public LoginFilter(AuthenticationManager authenticationManager) {
+    public LoginFilter(AuthenticationManager authenticationManager, AuthenticationSuccessHandler authenticationSuccessHandler) {
         super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
+        this.authenticationSuccessHandler = authenticationSuccessHandler;
     }
 
     /**
@@ -105,5 +109,13 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
         authRequest.setDetails(this.authenticationDetailsSource.buildDetails(request));
     }
 
+
+    @Override
+    protected void successfulAuthentication(HttpServletRequest request,
+                                            HttpServletResponse response,
+                                            FilterChain chain,
+                                            Authentication authResult) throws IOException, ServletException {
+        authenticationSuccessHandler.onAuthenticationSuccess(request, response, authResult);
+    }
 
 }
