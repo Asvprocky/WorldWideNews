@@ -23,13 +23,16 @@ public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
 
     private final AuthenticationSuccessHandler loginSuccessHandler;
+    private final AuthenticationSuccessHandler socialSuccessHandler;
 
     public SecurityConfig(
             AuthenticationConfiguration authenticationConfiguration,
-            @Qualifier("loginSuccessHandler") AuthenticationSuccessHandler loginSuccessHandler
+            @Qualifier("loginSuccessHandler") AuthenticationSuccessHandler loginSuccessHandler,
+            @Qualifier("SocialSuccessHandler") AuthenticationSuccessHandler socialSuccessHandler
     ) {
         this.authenticationConfiguration = authenticationConfiguration;
         this.loginSuccessHandler = loginSuccessHandler;
+        this.socialSuccessHandler = socialSuccessHandler;
 
     }
 
@@ -68,7 +71,7 @@ public class SecurityConfig {
         // oauth2 인증
         http
                 .oauth2Login(oauth2 -> oauth2
-                        .successHandler());
+                        .successHandler(socialSuccessHandler));
 
         // 인가
         http
