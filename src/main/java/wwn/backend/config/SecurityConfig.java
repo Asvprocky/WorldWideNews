@@ -65,6 +65,11 @@ public class SecurityConfig {
         http
                 .httpBasic(AbstractHttpConfigurer::disable);
 
+        // oauth2 인증
+        http
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler());
+
         // 인가
         http
                 .authorizeHttpRequests(auth -> auth
