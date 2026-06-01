@@ -53,7 +53,7 @@ public class SecurityConfig {
 
     // 시큐리티 필터 체인
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, HttpServletResponse httpServletResponse, JwtService jwtService) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         // CSRF 보안 필터 disable
         http
