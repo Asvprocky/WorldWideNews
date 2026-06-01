@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -34,6 +35,7 @@ import java.util.Optional;
 public class UserService extends DefaultOAuth2UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final JwtService jwtService;
 
     /**
      * 로그인 유저 유효성 체크
@@ -99,9 +101,28 @@ public class UserService extends DefaultOAuth2UserService implements UserDetails
 
         return userRepository.save(userEntity).getId();
     }
+
     /**
      * 회원 탈퇴
      */
+    @Transactional
+    public void deleteUser(UserRequestDTO dto) throws AccessDeniedException {
+        SecurityContext context = SecurityContextHolder.getContext();
+        String sessionUserEmail = context.getAuthentication().getName();
+        String role = context.getAuthentication().getAuthorities().iterator().next().getAuthority();
+
+        boolean isOwner = sessionUserEmail.equals(dto.getEmail());
+        boolean isAdmin = role.equals("ROLE_" + UserRoleType.ADMIN.name());
+
+        if (!isOwner && !isAdmin) {
+            throw new AccessDeniedException("본인만 삭제 할 수있습니다.");
+        }
+        // 유저 제거
+        userRepository.deleteByEmail(dto.getEmail());
+
+        // jwt refresh 토큰 제거
+        jwtService.deleteByEmail(dto.getEmail());
+    }
 
     /**
      * 소셜 로그인

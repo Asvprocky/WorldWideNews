@@ -12,4 +12,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmailAndIsSocial(String email, Boolean isSocial);
 
 
+    void deleteByEmail(String email);
 }
