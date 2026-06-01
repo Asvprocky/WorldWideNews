@@ -23,6 +23,7 @@ import wwn.backend.domain.User;
 import wwn.backend.domain.UserRoleType;
 import wwn.backend.dto.oauth2.CustomOAuth2User;
 import wwn.backend.dto.request.UserRequestDTO;
+import wwn.backend.dto.response.UserResponseDTO;
 import wwn.backend.repository.UserRepository;
 
 import java.util.List;
@@ -212,4 +213,13 @@ public class UserService extends DefaultOAuth2UserService implements UserDetails
     /**
      * 로그인 정보 확인
      */
+    @Transactional(readOnly = true)
+    public UserResponseDTO readUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User userEntity = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("해당 유저를 찾을 수 없습니다." + email));
+
+        return new UserResponseDTO(email, userEntity.isSocial(), userEntity.getNickname());
+
+    }
 }

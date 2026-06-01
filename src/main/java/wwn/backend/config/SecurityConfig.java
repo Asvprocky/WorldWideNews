@@ -15,24 +15,27 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import wwn.backend.filter.LoginFilter;
+import wwn.backend.handler.LogoutSuccessHandler;
+import wwn.backend.service.JwtService;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
-
     private final AuthenticationSuccessHandler loginSuccessHandler;
     private final AuthenticationSuccessHandler socialSuccessHandler;
+    private final JwtService jwtService;
 
     public SecurityConfig(
             AuthenticationConfiguration authenticationConfiguration,
             @Qualifier("loginSuccessHandler") AuthenticationSuccessHandler loginSuccessHandler,
-            @Qualifier("SocialSuccessHandler") AuthenticationSuccessHandler socialSuccessHandler
-    ) {
+            @Qualifier("SocialSuccessHandler") AuthenticationSuccessHandler socialSuccessHandler,
+            JwtService jwtService) {
         this.authenticationConfiguration = authenticationConfiguration;
         this.loginSuccessHandler = loginSuccessHandler;
         this.socialSuccessHandler = socialSuccessHandler;
+        this.jwtService = jwtService;
 
     }
 
@@ -50,7 +53,7 @@ public class SecurityConfig {
 
     // 시큐리티 필터 체인
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, HttpServletResponse httpServletResponse) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, HttpServletResponse httpServletResponse, JwtService jwtService) throws Exception {
 
         // CSRF 보안 필터 disable
         http
@@ -82,6 +85,11 @@ public class SecurityConfig {
         http
                 .addFilterBefore(new LoginFilter(AuthenticationManager(authenticationConfiguration), loginSuccessHandler), UsernamePasswordAuthenticationFilter.class);
 
+
+        // 로그아웃 헨들러 (refreshToken 삭제)
+        http
+                .logout(logout -> logout
+                        .addLogoutHandler(new LogoutSuccessHandler(jwtService)));
 
         // 예외 처리
         http

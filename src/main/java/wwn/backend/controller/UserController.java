@@ -5,12 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import wwn.backend.dto.request.UserRequestDTO;
+import wwn.backend.dto.response.UserResponseDTO;
 import wwn.backend.service.UserService;
 
 import java.util.Collections;
@@ -41,4 +41,37 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
     }
 
+    /**
+     * 내 정보
+     */
+    @GetMapping(value = "/info", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public UserResponseDTO getUserInfo() {
+        return userService.readUser();
+    }
+
+    /**
+     * 유저 정보 수정
+     */
+    @PostMapping(value = "/update", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Long> updateUserInfo(
+            @Validated(UserRequestDTO.updateGroup.class)
+            @RequestBody UserRequestDTO dto
+    ) throws UsernameNotFoundException {
+
+        return ResponseEntity.status(HttpStatus.OK).body(userService.updateUser(dto));
+
+    }
+
+    /**
+     * 유저 탈퇴 , 제거
+     */
+    @DeleteMapping(value = "/delete", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Boolean> deleteUserInfo(
+            @Validated(UserRequestDTO.deleteGroup.class)
+            @RequestBody UserRequestDTO dto
+    ) throws AccessDeniedException {
+
+        userService.deleteUser(dto);
+        return ResponseEntity.status(HttpStatus.OK).body(true);
+    }
 }
