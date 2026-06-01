@@ -14,6 +14,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
+import wwn.backend.filter.JwtFilter;
 import wwn.backend.filter.LoginFilter;
 import wwn.backend.handler.LogoutSuccessHandler;
 import wwn.backend.service.JwtService;
@@ -81,15 +83,18 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll());
 
-        // 커스텀 필터 체인 설정
+        // 커스텀 필터 체인 설정 (커스텀으로 완전히 갈아끼움)
         http
                 .addFilterBefore(new LoginFilter(AuthenticationManager(authenticationConfiguration), loginSuccessHandler), UsernamePasswordAuthenticationFilter.class);
 
 
-        // 로그아웃 헨들러 (refreshToken 삭제)
+        // 로그아웃 헨들러 기존 로그아웃 핸들러에서 추가만함 (refreshToken 삭제)
         http
                 .logout(logout -> logout
                         .addLogoutHandler(new LogoutSuccessHandler(jwtService)));
+
+        http
+                .addFilterBefore(new JwtFilter(), LogoutFilter.class);
 
         // 예외 처리
         http
