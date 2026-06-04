@@ -42,7 +42,7 @@ public class UserController {
     }
 
     /**
-     * 내 정보
+     * 내 정보 확인
      */
     @GetMapping(value = "/info", consumes = MediaType.APPLICATION_JSON_VALUE)
     public UserResponseDTO getUserInfo() {
@@ -50,7 +50,7 @@ public class UserController {
     }
 
     /**
-     * 유저 정보 수정
+     * 내 정보 수정
      */
     @PostMapping(value = "/update", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Long> updateUserInfo(
