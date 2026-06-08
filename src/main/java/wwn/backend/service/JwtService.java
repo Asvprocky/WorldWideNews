@@ -58,7 +58,7 @@ public class JwtService {
         }
 
         // 2. 통합 쿠키 이름인 "refresh_token" (또는 이전 프로젝트처럼 "refreshToken") 찾기
-        // ⚠️ 프론트엔드(Next.js)와 이름을 완전히 통일해야 합니다. 여기선 "refresh_token"으로 세팅할게요.
+        //  프론트엔드(Next.js)와 이름을 완전히 통일해야함.
         String refreshToken = null;
         for (Cookie cookie : cookies) {
             if ("refreshToken".equals(cookie.getName())) {
@@ -78,7 +78,7 @@ public class JwtService {
 
         // 4. DB 화이트리스트 확인
         // 소셜 로그인 직후 최초 교환 시점에는 DB에 없을 수 있으므로 유연하게 체크하거나,
-        // 소셜 핸들러에서 발급할 때 미리 DB에 인서트해 두면 이 조건문을 부드럽게 통과합니다.
+        // 소셜 핸들러에서 발급할 때 미리 DB에 인서트해 두면 이 조건문을 부드럽게 통과함.
         if (!existsRefresh(refreshToken)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "refreshToken 위조 또는 누락");
         }

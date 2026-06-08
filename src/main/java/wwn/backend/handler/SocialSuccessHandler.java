@@ -40,10 +40,10 @@ public class SocialSuccessHandler implements AuthenticationSuccessHandler {
         refreshCookie.setHttpOnly(true);
         refreshCookie.setSecure(false); // 로컬 개발중은 false
         refreshCookie.setPath("/");
-        refreshCookie.setMaxAge(10); // 10초
+        refreshCookie.setMaxAge(100); // 100초
 
         response.addCookie(refreshCookie);
-        response.sendRedirect("http://localhost:5173/cookie");
+        response.sendRedirect("http://localhost:3000/cookie");
 
     }
 }
