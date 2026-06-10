@@ -26,8 +26,8 @@ public class UserController {
      * 회원가입 API
      * JSON 형태의 요청 데이터를 받아 회원가입 처리 후 생성된 유저 ID 반환함.
      */
-    @PostMapping(value = "/join", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Long>> joinApi(
+    @PostMapping(value = "/signup", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Long>> signupApi(
             @Validated(UserRequestDTO.addGroup.class) // 앞서 정의한 회원가입 전용 유효성 검증 작동
             @RequestBody UserRequestDTO dto) {
 
