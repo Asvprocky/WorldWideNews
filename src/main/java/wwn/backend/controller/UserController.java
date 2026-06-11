@@ -44,7 +44,7 @@ public class UserController {
     /**
      * 내 정보 확인
      */
-    @GetMapping(value = "/info", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/info")
     public UserResponseDTO getUserInfo() {
         return userService.readUser();
     }

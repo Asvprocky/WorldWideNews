@@ -126,7 +126,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/jwt/exchange", "/jwt/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST, "/user/exist", "/user", "/user/signup").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/user").hasRole(UserRoleType.USER.name())
+                        .requestMatchers(HttpMethod.GET, "/user", "/user/info").hasRole(UserRoleType.USER.name())
                         .requestMatchers(HttpMethod.PUT, "/user").hasRole(UserRoleType.USER.name())
                         .requestMatchers(HttpMethod.DELETE, "/user").hasRole(UserRoleType.USER.name())
                         .anyRequest().authenticated()
@@ -140,7 +140,16 @@ public class SecurityConfig {
         // 로그아웃 헨들러 기존 로그아웃 핸들러에서 추가만함 (refreshToken 삭제)
         http
                 .logout(logout -> logout
-                        .addLogoutHandler(new LogoutSuccessHandler(jwtService)));
+                        // 1 로그아웃 엔드포인트
+                        .logoutUrl("/logout")
+                        // 2 커스텀 로그아웃핸들러 추가
+                        .addLogoutHandler(new LogoutSuccessHandler(jwtService))
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            // 3 로그아웃이 성공적으로 끝나면 프론트엔드에게 성공 응답 보냄
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            response.getWriter().write("Logout Success");
+                        })
+                );
         // jwtFilter
         http
                 .addFilterBefore(new JwtFilter(), LogoutFilter.class);
