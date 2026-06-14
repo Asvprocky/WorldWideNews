@@ -41,8 +41,11 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-impl:0.12.6'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.12.6' //JSON 파싱용
 
-    // 롬 툴 설정
+    // RSS 기사, 롬 툴 설정
     implementation 'com.rometools:rome:2.1.0'
+
+    // 기사 본문 크롤링
+    implementation 'org.jsoup:jsoup:1.17.2'
 }
 
 tasks.named('test') {

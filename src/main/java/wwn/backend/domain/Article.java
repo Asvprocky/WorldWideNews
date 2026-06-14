@@ -44,7 +44,7 @@ public class Article {
     @Column(columnDefinition = "TEXT")
     private String summary;
 
-    @Column(name = "article_url", nullable = false, unique = true)
+    @Column(name = "article_url", nullable = false, length = 2000)
     private String articleUrl;
 
     @Column(name = "thumbnail_url")

@@ -25,12 +25,14 @@ public class ArticleService {
                 .map(article -> new ArticleResponse(
                         article.getId(),
                         article.getOriginalTitle(),
+                        article.getOriginalContent(),
                         article.getCountry().getCountryNameKo(),
                         article.getNewsSource().getName(),
                         article.getArticleUrl(),
                         article.getPublishedAt(),
                         article.getCountry().getLatitude(),
-                        article.getCountry().getLongitude()
+                        article.getCountry().getLongitude(),
+                        article.getCategory().name()
                 ))
                 .toList();
     }
@@ -49,12 +51,14 @@ public class ArticleService {
                 .map(article -> new ArticleResponse(
                         article.getId(),
                         article.getOriginalTitle(),
+                        article.getOriginalContent(),
                         article.getCountry().getCountryNameKo(),
                         article.getNewsSource().getName(),
                         article.getArticleUrl(),
                         article.getPublishedAt(),
                         article.getCountry().getLatitude(),
-                        article.getCountry().getLongitude()
+                        article.getCountry().getLongitude(),
+                        article.getCategory().name()
                 ))
                 .toList();
     }
@@ -78,12 +82,14 @@ public class ArticleService {
                 .map(article -> new ArticleResponse(
                         article.getId(),
                         article.getOriginalTitle(),
+                        article.getOriginalContent(),
                         article.getCountry().getCountryNameKo(),
                         article.getNewsSource().getName(),
                         article.getArticleUrl(),
                         article.getPublishedAt(),
                         article.getCountry().getLatitude(),
-                        article.getCountry().getLongitude()
+                        article.getCountry().getLongitude(),
+                        article.getCategory().name()
                 ))
                 .toList();
     }

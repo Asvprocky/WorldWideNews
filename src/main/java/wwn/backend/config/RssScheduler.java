@@ -12,7 +12,8 @@ import wwn.backend.service.RssCollectorService;
 public class RssScheduler {
     private final RssCollectorService rssCollectorService;
 
-    @Scheduled(fixedRate = 30000)
+    // 30 분마다 호출
+    @Scheduled(fixedRate = 1000 * 60 * 30)
 
     public void collectNews() {
 
