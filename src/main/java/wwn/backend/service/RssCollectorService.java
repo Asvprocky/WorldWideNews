@@ -33,7 +33,7 @@ public class RssCollectorService {
 
     public void collect() {
 
-        // 엑티브 된 기사 뉴스소스들만 가져
+        // 엑티브 된 기사 뉴스소스들만 가져옴
         List<NewsSource> sources = newsSourceRepository.findByIsActiveTrue();
 
         for (NewsSource source : sources) {
@@ -44,51 +44,83 @@ public class RssCollectorService {
                 connection.setRequestProperty("Accept", "application/xml, text/xml, */*");
                 connection.setConnectTimeout(5000);
                 connection.setReadTimeout(5000);
+
                 SyndFeedInput input = new SyndFeedInput();
                 SyndFeed feed = input.build(new XmlReader(connection));
 
                 log.info("===== {} 수집 시작 =====", source.getName());
 
                 for (SyndEntry entry : feed.getEntries()) {
-                    // 1. [검증] 구글 뉴스 메인 페이지 설명글은 수집하지 않음
-                    if (entry.getTitle().contains("Comprehensive up-to-date news coverage")) {
-                        continue;
-                    }
+                    // 1. [정제] 제목 추출 (CNN인 경우)
+                    String originalTitle = entry.getTitle();
 
-                    String articleUrl = entry.getLink();
+                    if ("CNN".equalsIgnoreCase(source.getName())) {
+                        String desc = (entry.getDescription() != null) ? entry.getDescription().getValue() : "";
 
-                    // 1. [정제] 구글 뉴스 리다이렉트 주소라면 원본 주소로 복원
-                    if (articleUrl.contains("news.google.com")) {
-                        try {
-                            // 접속하여 리다이렉트되는 최종 목적지(CNN 기사 페이지)를 가져옴
-                            articleUrl = Jsoup.connect(articleUrl)
-                                    .userAgent("Mozilla/5.0")
-                                    .followRedirects(true)
-                                    .execute()
-                                    .url()
-                                    .toString();
-                        } catch (Exception e) {
-                            log.warn("원본 URL 복원 실패, 구글 링크 유지: {}", articleUrl);
+                        if (desc != null && !desc.isEmpty()) {
+                            String extracted = Jsoup.parse(desc).text();
+                            // " - CNN" 이라는 껍데기만 남은 경우, extracted는 " - CNN" 혹은 그냥 ""이 됨.
+                            // 따라서 제목이 정상적으로 추출되었는지 확인.
+                            if (extracted != null && extracted.length() > 5 && !extracted.trim().equals("- CNN")) {
+                                originalTitle = extracted.replace("CNN", "").trim();
+                            }
                         }
                     }
 
-                    // 2. [정제] 제목에서 " - 언론사명" 제거 (예: "기사 제목 - CNN" -> "기사 제목")
-                    String originalTitle = entry.getTitle();
-                    if (originalTitle.contains(" - ")) {
+                    // [정제] " - 언론사명" 제거
+                    if (originalTitle != null && originalTitle.contains(" - ")) {
                         originalTitle = originalTitle.split(" - ")[0];
+                    }
+
+                    // [핵심 정제] 여기서 확실하게 걸러냄.
+                    // 1. null인가?
+                    // 2. "CNN"이나 " - "만 남아있는가?
+                    // 3. 길이가 5자 미만인가?
+                    if (originalTitle == null ||
+                            originalTitle.trim().length() < 5) {
+
+                        log.info("무효한 기사 제목 감지됨, 건너뜀: {}", originalTitle);
+                        continue;
+                    }
+
+                    // 2. [정제] URL 복원 구글 봇 감지 우회 추가 영역
+                    String articleUrl = entry.getLink();
+                    if (articleUrl != null && articleUrl.contains("news.google.com")) {
+                        try {
+                            // 단순 url() 확인이 아니라 브라우저와 완벽히 동일한 헤더 정보를 주어 봇 차단을 통과.
+                            org.jsoup.Connection.Response response = Jsoup.connect(articleUrl)
+                                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36")
+                                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8")
+                                    .header("Accept-Language", "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7")
+                                    .header("Cache-Control", "no-cache")
+                                    .header("Pragma", "no-cache")
+                                    .header("Sec-Ch-Ua", "\"Not A(Brand\";v=\"99\", \"Google Chrome\";v=\"121\", \"Chromium\";v=\"121\"")
+                                    .header("Sec-Ch-Ua-Mobile", "?0")
+                                    .header("Sec-Ch-Ua-Platform", "\"Windows\"")
+                                    .followRedirects(true)
+                                    .timeout(5000)
+                                    .execute();
+
+                            String finalUrl = response.url().toString();
+
+                            // 정상적으로 구글 밖의 언론사 주소로 탈출했을 때만 변환값을 적용.
+                            if (finalUrl != null && !finalUrl.contains("news.google.com")) {
+                                articleUrl = finalUrl;
+                            }
+                        } catch (Exception e) {
+                            log.warn("원본 URL 복원 실패, 구글 링크 유지: {} (원인: {})", articleUrl, e.getMessage());
+                        }
                     }
 
                     if (articleRepository.existsByArticleUrl(articleUrl)) continue;
 
-                    // 1. RSS 내장 카테고리 태그 우선 탐색
+                    // 3. 분류 및 요약
                     NewsCategory category = extractCategoryFromRss(entry);
-
-                    // 2. 태그가 없거나 UNKNOWN이면 키워드 기반 분류기(classifier) 실행
                     if (category == NewsCategory.UNKNOWN) {
-                        category = classifier.classify(entry.getTitle(), "");
+                        category = classifier.classify(originalTitle, "");
                     }
 
-                    String summary = fetchArticleSummary(articleUrl); // 이제 원본 CNN 페이지 접속
+                    String summary = fetchArticleSummary(articleUrl);
                     LocalDateTime publishedAt = (entry.getPublishedDate() != null)
                             ? entry.getPublishedDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
                             : LocalDateTime.now();
@@ -106,14 +138,9 @@ public class RssCollectorService {
                             .build();
 
                     articleRepository.save(article);
-                    log.info("저장 완료 : {} (요약글 길이: {})", entry.getTitle(), summary.length());
+                    log.info("저장 완료 : {} (요약글 길이: {})", originalTitle, summary.length());
 
-                    // [중요] 예의상 1초 대기 (사이트 차단 방지 및 크롤링 상대 서버 부하 방지)
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
+                    Thread.sleep(1000);
                 }
             } catch (Exception e) {
                 log.error("RSS 수집 실패 : {}", source.getName(), e);
@@ -140,7 +167,11 @@ public class RssCollectorService {
 
     private String fetchArticleSummary(String url) {
         try {
-            Document doc = Jsoup.connect(url).timeout(5000).get();
+            // 원문 사이트(CNN 본사 등)에서도 봇 감지가 일어날 수 있으므로 User-Agent 정보를 추가 제공.
+            Document doc = Jsoup.connect(url)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36")
+                    .timeout(5000)
+                    .get();
 
             // 1. 우선순위: og:description (페이스북/카톡 공유용 요약)
             String summary = doc.select("meta[property=og:description]").attr("content");
