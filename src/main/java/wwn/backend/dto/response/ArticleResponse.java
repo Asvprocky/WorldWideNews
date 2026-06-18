@@ -6,6 +6,7 @@ public record ArticleResponse(
         Long id,
         String title,
         String originalContent,
+        String thumbnailUrl,
         String country,
         String source,
         String url,
