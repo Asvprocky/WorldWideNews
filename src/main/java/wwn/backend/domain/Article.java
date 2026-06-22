@@ -54,7 +54,7 @@ public class Article {
     private LocalDateTime publishedAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private NewsCategory category;
 
     @Column(nullable = false)

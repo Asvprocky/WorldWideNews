@@ -18,4 +18,5 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
     // 나라별 뉴스 최신순
     List<Article> findByCountry_CountryCodeOrderByPublishedAtDesc(String countryCode);
 
+    long countByArticleUrl(String url);
 }
