@@ -72,21 +72,11 @@ public class RssCollectorService {
                     }
 
                     String articleUrl = entry.getLink();
-                    if (articleUrl != null && articleUrl.contains("news.google.com")) {
-                        try {
-                            org.jsoup.Connection.Response response = Jsoup.connect(articleUrl)
-                                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36")
-                                    .followRedirects(true).timeout(5000).execute();
-                            String finalUrl = response.url().toString();
-                            if (finalUrl != null && !finalUrl.contains("news.google.com")) {
-                                articleUrl = finalUrl;
-                            }
-                        } catch (Exception e) {
-                            log.warn("URL 복원 실패: {}", articleUrl);
-                        }
-                    }
 
-                    if (articleRepository.existsByArticleUrl(articleUrl)) continue;
+                    // 뉴스 API와 통일성을 위해 countBy 방식으로 중복 검사
+                    if (articleRepository.countByArticleUrl(articleUrl) > 0) {
+                        continue;
+                    }
 
                     // [데이터 추출: 요약 & 썸네일 통합]
                     String summary = "";
@@ -95,9 +85,6 @@ public class RssCollectorService {
                         Document doc = Jsoup.connect(articleUrl)
                                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36")
                                 .timeout(5000).get();
-
-                        System.out.println(doc.location());
-                        System.out.println(doc.title());
 
                         summary = doc.select("meta[property=og:description]").attr("content");
                         if (summary.isEmpty()) summary = doc.select("meta[name=description]").attr("content");
@@ -126,7 +113,7 @@ public class RssCollectorService {
                             .originalTitle(originalTitle)
                             .translatedTitle(originalTitle)
                             .originalContent(summary)
-                            .thumbnailUrl(thumbnailUrl) // 썸네일 저장
+                            .thumbnailUrl(thumbnailUrl)
                             .articleUrl(articleUrl)
                             .publishedAt(publishedAt)
                             .category(category)

@@ -45,6 +45,7 @@ public class NewsApiCollectorService {
 
                 String apiUrl = "https://newsapi.org/v2/top-headlines?country=" + countryCode + "&apiKey=" + newsApiKey;
 
+                // newsAPI 에서 내려받은 JSON 형식을 NewsApiResponse 객체로 자동 변환
                 NewsApiResponse response = restTemplate.getForObject(apiUrl, NewsApiResponse.class);
 
 
@@ -72,6 +73,7 @@ public class NewsApiCollectorService {
                             continue;
                         }
 
+                        // DTO -> Entity
                         try {
                             Article article = Article.builder()
                                     .newsSource(source)
