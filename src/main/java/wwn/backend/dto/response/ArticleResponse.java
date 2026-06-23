@@ -13,6 +13,7 @@ public record ArticleResponse(
         LocalDateTime publishedAt,
         Double lat,
         Double lng,
-        String category
+        String category,
+        boolean isBookmarked
 ) {
 }
