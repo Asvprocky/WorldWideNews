@@ -127,7 +127,7 @@ public class SecurityConfig {
                         .requestMatchers("/jwt/exchange", "/jwt/refresh").permitAll()
                         .requestMatchers(HttpMethod.GET, "/articles/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/user/exist", "/user", "/user/signup", "/test/rss").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/user", "/user/info").hasRole(UserRoleType.USER.name())
+                        .requestMatchers(HttpMethod.GET, "/user", "/user/info", "/bookmark/list").hasRole(UserRoleType.USER.name())
                         .requestMatchers(HttpMethod.PUT, "/user").hasRole(UserRoleType.USER.name())
                         .requestMatchers(HttpMethod.DELETE, "/user").hasRole(UserRoleType.USER.name())
                         .anyRequest().authenticated()
