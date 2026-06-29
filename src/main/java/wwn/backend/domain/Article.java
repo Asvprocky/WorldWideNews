@@ -41,6 +41,9 @@ public class Article {
     @Column(name = "translated_title")
     private String translatedTitle;
 
+    @Column(name = "translated_content", columnDefinition = "TEXT")
+    private String translatedContent;
+
     @Column(columnDefinition = "TEXT")
     private String summary;
 
@@ -76,6 +79,7 @@ public class Article {
             String originalTitle,
             String originalContent,
             String translatedTitle,
+            String translatedContent,
             String summary,
             String articleUrl,
             String thumbnailUrl,
@@ -89,6 +93,7 @@ public class Article {
         this.originalTitle = originalTitle;
         this.originalContent = originalContent;
         this.translatedTitle = translatedTitle;
+        this.translatedContent = translatedContent;
         this.summary = summary;
         this.articleUrl = articleUrl;
         this.thumbnailUrl = thumbnailUrl;

@@ -46,6 +46,8 @@ dependencies {
 
     // 기사 본문 크롤링
     implementation 'org.jsoup:jsoup:1.17.2'
+
+
 }
 
 tasks.named('test') {
